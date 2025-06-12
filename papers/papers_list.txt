@@ -1,0 +1,34 @@
+1. Noraini J., Masnizah M., Azman N. Sh. Poetry Classification Using Support Vector Machines // 2012
+2. Kumar V., Minz S. Poem Classification Using Machine Learning Approach // 2014
+3. Ruma J. F. [et al.] A deep learning classification model for Persian Hafez poetry based on the poet’s era // 2022
+4. Shahriar S., Roken N. A., Zualkernan I. Classification of Arabic Poetry Emotions Using Deep Learning // 2023
+5. Rosa J. [et al.] ALBERTI, a Multilingual Domain Specific Language Model for Poetry Analysis // 2023
+6. Jacobs A. M., Kinder A. Computational analyses of the topics, sentiments, literariness, creativity and beauty of texts in a large Corpus of English Literature // 2022
+7. Barbado A., González M. D, Carrera D. Lexico-semantic and affective modelling of Spanish poetry: A semi-supervised learning approach // 2021
+8. Qarah F. AraPoemBERT: A Pretrained Language Model for Arabic Poetry Analysis // 2024
+9. Orabi M., Rifai H. E., Elnagar A. Classical Arabic Poetry: Classification based on Era // 2020
+10. Ahmad Sh. [et al.] Classification of Poetry Text Into the Emotional States Using Deep Learning Technique // 2020
+11. Ahmed M. A. [el al.] The classification of the modern arabic poetry using machine learning // 2019
+
+
+[1] Старая статья. Классификация малайской поэзии по темам с помощью TFIDF и SVM. Есть небольшие вопросы.
+
+[2] Старая статья. k ближайших соседей, наивный Байес и SVM. Есть небольшие вопросы.
+
+[3] LSTM. С виду хорошая, разобраться подробнее. Содержит литобзор.
+
+[4] Нейронки и BERT. Средненько; классификация всего по нескольким чувствам.
+
+[5] Alberti на основе BERTа. К вопросу об ударениях и размере.
+
+[6] ???
+
+[7] Классификация испанской поэзии, в т. ч. по темам. Интересно.
+
+[8] ???
+
+[9] Классификация арабской поэзии по эре.
+
+[10] LSTM. Выглядит качественно.
+
+[11] Классификация арабской поэзии по четырем темам. Вроде нормально.
