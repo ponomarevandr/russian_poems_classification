@@ -87,7 +87,9 @@
 \maketitle
 
 \begin{abstract}
-    \absent{Краткое описание проекта} Репозиторий проекта находится по ссылке \\
+    Настоящая работа посвящена применению современных средств обработки естественного языка для анализа русских стихотворных текстов. Решается задача классификации русской классической поэзии по эпохам. Обучены две модели: LSTM-нейросеть, использованная с готовыми эмбеддингами, а также классификатор на основе кодировщика RuBERT-tiny. Второй показывает точность около $70 \%$.
+
+    Репозиторий проекта находится по ссылке \\
     \url{https://github.com/ponomarevandr/russian_poems_classification}.
 \end{abstract}
 
@@ -132,10 +134,6 @@
 
 После объединения исходных датасетов данные были приведены к единому формату и очищены (см. Юпитер-тетрадку \textit{dataset\_preparation.ipynb}). Итоговая структура датасета показана в таблице \ref{tab:dataset}.
 
-Поле \textit{author} всюду приведено к одной лишь фамилии автора; в случае совпадений используются приписки через дефис, например: \textit{Багрицкий-отец}, \textit{Иванов-В}. Исключены иноязычные авторы, представленные в переводах.
-
-Заглавие в поле \textit{title} приведено к нижнему регистру и очищено ото всех небуквенных символов, кроме цифр и пробелов.
-
 \begin{table}[t]
 \centering
 \begin{tabular}[t]{|m{1.4cm}|m{2.8cm}|m{4.2cm}|m{2.9cm}|m{1.3cm}|m{1.4cm}|}
@@ -151,6 +149,10 @@
 \caption{Структура датасета.}
 \label{tab:dataset}
 \end{table}
+
+Поле \textit{author} всюду приведено к одной лишь фамилии автора; в случае совпадений используются приписки через дефис, например: \textit{Багрицкий-отец}, \textit{Иванов-В}. Исключены иноязычные авторы, представленные в переводах.
+
+Заглавие в поле \textit{title} приведено к нижнему регистру и очищено ото всех небуквенных символов, кроме цифр и пробелов.
 
 В текстах стихотворений по возможности исправлены ошибочные символы, удалены теги, сноски, номера строф, символьные артефакты. Убраны пустые строки. Исключены записи, состоящие преимущественно не из русских букв или имеющие среднюю длину строки более $60$ символов.
 
@@ -186,13 +188,13 @@
     \makecell[l]{Поэзия \\ шестидесятников} & Вторая половина XX века & \\
     \hline
 \end{tabular}
-\caption{Эпохи, выделяемые в русской поэзии}
+\caption{Эпохи, выделяемые в русской поэзии.}
 \label{tab:epoches}
 \end{table}
 
 Для простоты будем считать, что эпоха стихотворения определяется эпохой его автора; $189$ авторам, представленным в датасете, были присвоены метки в соответствии со сказанным выше, а затем перенесены на соответствующие фрагменты произведений. Списки авторов по эпохам см. в Юпитер-тетрадке \textit{dataset\_labeling.ipynb}.
 
-Получившееся разбиение на классы относительно сбалансированно: самый большой~-- Серебряный век~-- содержит $16204$ стихотворных фрагмента; самый малый~-- шестидесятники~-- $3238$, что примерно в $5$ раз меньше.
+Получившееся разбиение на классы относительно сбалансированно: самый большой~-- Серебряный век~-- содержит $16204$ стихотворных фрагмента; самый малый~-- шестидесятники~-- $3238$, что примерно в $5$ раз меньше, и сразу за ним~-- классицизм~-- $3281$. 
 
 Для работы с моделями датасет разбивался на три части: тренировочную (train), валидационную (eval) и тестовую (test)~-- в соотношении $70:15:15$.
 
@@ -209,54 +211,65 @@
 
 Для обучения использовался оптимизатор \textit{optim.Adam} с параметром $lr = 1.5 \cdot 10^{-4}$ (learning rate).
 
-\subsection{RuBERT-tiny}
-
-Вторая использованная модель -- это BERT-подобный кодировщик RuBERT-tiny2 (см. Юпитер-тетрадку \textit{training\_rubert.ipynb}), опубликованный в Интернете \cite{rubert_model}. Модель была выбрана, во-первых, потому, что специально предназначена для русскоязычных текстов, во-вторых, из-за своего сравнительно малого (как и обещеат название) размера в $29.4$ миллиона параметров.
-
-Работа с моделью происходит через библиотеки Datasets, Evaluate и Transformers компании Hugging Face. Автор значительно опирался на код из Юпитер-тетрадки \cite{rubert_notebook}. Хотя исходно модель RuBERT-tiny2 -- это кодировщик, а не классификатор, средства библиотек позволяют загрузить ее в класс \textit{AutoModelForSequenceClassification}, автоматически добавляя необходимые элементы. Для обучения использовался оптимизатор \textit{optim.Adam} из библиотеки Pytorch, с параметром $lr = 10^{-5}$. Модель поддерживает работу на GPU (Cuda), что значительно ускорило обучение -- средствами Google Colab оно было завершено приблизительно за 25 минут.
-
-\begin{figure}[!tbh]
+\begin{figure}[tp]
     \centering
-    \includegraphics[width=0.7\linewidth]{figures/rubert_confusion_matrix.png}
-    \caption{Матрица конфуза модели RuBERT}
+    \includegraphics[width=0.75\linewidth]{figures/lstm_confusion_matrix.png}
+    \vspace{-0.3cm}
+    \caption{Матрица ошибок LSTM-модели.}
+    \label{fig:lstm_confusion}
+    \vspace{0.5cm}
+    \includegraphics[width=0.75\linewidth]{figures/rubert_confusion_matrix.png}
+    \vspace{-0.3cm}
+    \caption{Матрица ошибок модели RuBERT-tiny.}
     \label{fig:rubert_confusion}
 \end{figure}
 
-\section{Experiments}
-This section should include several subsections.
-\subsection{Metrics}
-First of all, you should describe the metric(s) you were using to evaluate your approach. Most likely a metric description will include a formula.
 
-\subsection{Experiment Setup}
-Secondly, you need to describe the design of your experiment, e.g. how many runs there were, how the data split was done. The important details of your model, like hyper-parameters used in the experiments, and so on.
+\subsection{RuBERT-tiny}
 
-\subsection{Baselines}
-Another important feature is that you could provide here the description of some simple approaches for your problem, like logistic regression over TF-IDF embedding for text classification. The baselines are needed is there is no previous art on the problem you are presenting.
+Вторая использованная модель~-- это BERT-подобный кодировщик RuBERT-tiny2 (см. Юпитер-тетрадку \textit{training\_rubert.ipynb}), опубликованный в Интернете \cite{rubert_model}. Модель была выбрана, во-первых, потому, что специально предназначена для русскоязычных текстов, во-вторых, из-за своего сравнительно малого (как и обещеат название) размера в $29.4$ миллиона параметров.
 
-\section{Results}
-In this section, you need to list and describe the achieved results. It is crucial to have the results of the experiments for the other approaches. This is needed to be able to compare your results with some competitors. Most preferably, you should provide some references with results on the same problem.
+Работа с моделью происходит через библиотеки Datasets, Evaluate и Transformers компании Hugging Face. Автор значительно опирался на код из Юпитер-тетрадки \cite{rubert_notebook}. Хотя исходно модель RuBERT-tiny2~-- это кодировщик, а не классификатор, средства библиотек позволяют загрузить ее в класс \textit{AutoModelForSequenceClassification}, автоматически добавляя необходимые элементы. Для обучения использовался оптимизатор \textit{optim.Adam} из библиотеки Pytorch, с параметром $lr = 10^{-5}$. Модель поддерживает работу на GPU (Cuda), что значительно ускорило обучение~-- средствами Google Colab оно было завершено приблизительно за 25 минут.
 
-Almost inevitably the results are presented as a table, but it is also possible to have a graph, i.e. a figure.
 
-You need also to provide an interpretation of the presented results, to describe some features. E.g. your approach shows higher results on the short texts or by one metric instead of another.
+\section{Результаты}
 
-Also in this section, you could provide some results for your model inference. The samples could be found in Tab.~\ref{tab:output}.
+Предсказания моделей оценены по двум стандартным метрикам: accuracy (точности) и weighted F1 (результаты в таблице \ref{tab:results}).
 
-\begin{table}[!tbh]
-    \centering
-    \begin{tabular}{|c|}
-\hline
-Это пример вывода вашей модели на русском.\\
-This is a sample output of your model in English.
-\\
-\hline
-    \end{tabular}
-    \caption{Output samples.}
-    \label{tab:output}
+\begin{table}[t]
+\centering
+\begin{tabular}[t]{|l|c|c|}
+    \hline
+    Модель & accuracy & weighted F1 \\
+    \hline
+    LSTM-нейросеть & 0.543 & 0.514 \\
+    RuBERT-tiny2 & 0.696 & 0.694 \\
+    \hline
+\end{tabular}
+\caption{Результаты моделей на тестовых данных.}
+\label{tab:results}
 \end{table}
 
-\section{Conclusion}
-In this section, you need to describe all the work in short: what you have done and what has been achieved. E.g. you have collected a dataset, made a markup for it and developed a model showing the best results compared to other models. 
+Для полученных на тестовых данных предсказаний также построены матрицы ошибок (confusion matrices), см. рис. \ref{fig:lstm_confusion}, \ref{fig:rubert_confusion}.
+
+LSTM-модель показала удовлетворительный результат. Она справляется с задачей примерно в половине случаев; притом никогда не выдает в качестве результата поэзию шестидесятников.
+
+Дообученная модель RuBERT-tiny2 справляется с задачей хорошо, демонстрируя значительную точность примерно в $70 \%$. Наиболее трудны для определения оказываются опять же шестидесятники, за ними~-- соцреализм и критический реализм. Легче всего оказывается распознать поэзию Серебряного века и классицизма. Заметим, что трудность определения обусловлена вовсе не только размерами классов.
+
+
+\section{Файлы моделей и демонстрация работы}
+
+Файлы обеих обученных модели сохранены в репозитории. В Юпитер-тетрадке \textit{training\_rubert.ipynb} приведен минимальный код, открывающий файлы готовой модели и позволяющий запустить ее на любом тексте по желанию пользователя.
+
+
+\section{Заключение}
+В настоящей работе проделано следующее.
+\begin{itemize}
+    \item Составлен датасет русских классических стихотворений. Датасет размечен: добавлен целевой признак эпохи (течения, направления), всего $7$ классов.
+    \item Для решения задачи классификации обучена LSTM-нейросеть, использовавшаяся вместе с готовыми русскоязычными эмбеддингами. Модель показала удовлетворительный результат.
+    \item Для решения задачи классификации применена предобученная модель RuBERT-tiny2, основые достоинства которой -- приспособленность к русскому языку и сравнительно малый размер. Дообученная модель показала хороший результат на тестовых данных: точность около $70 \%$.
+    \item Полученная на основе RuBERT-tiny2 модель может в дальнейшем использоваться на практике, например, для категоризации стихов на интернет-сайтах.
+\end{itemize}
 
 
 \begin{otherlanguage}{english}
