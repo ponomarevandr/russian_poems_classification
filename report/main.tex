@@ -1,0 +1,214 @@
+\documentclass[a4paper,12pt]{article}
+
+%%% Поля
+\usepackage[
+    left=2cm,
+    right=2cm,
+    top=2cm,
+    bottom=3cm,
+    bindingoffset=0cm
+]{geometry}
+
+%%% Работа с русским языком
+\usepackage{cmap}                       % поиск в PDF
+\usepackage{mathtext}                   % русские буквы в формулах
+\usepackage[T2A]{fontenc}               % кодировка
+\usepackage[utf8]{inputenc}             % кодировка исходного текста
+\usepackage[english,russian]{babel}     % локализация и переносы
+\usepackage{indentfirst}
+\frenchspacing
+
+%%% Дополнительная работа с математикой
+\usepackage{amsmath,amsfonts,amssymb,amsthm,mathtools}  % AMS
+
+%%% Текст в колонки
+\usepackage{multicol}
+
+%%% Списки
+\usepackage{enumitem}
+\setlist{nosep, leftmargin=*}
+\renewcommand{\labelenumi}{\arabic*)}
+
+%%% Системы уравнений
+\usepackage{cases}
+
+%%% Таблицы
+\usepackage{array}
+
+%%% Рисунки
+\usepackage{graphicx}
+\usepackage{float}
+
+%%% Точка в подписях к рисункам
+\usepackage[labelsep=period]{caption}
+
+%%% Список литературы
+\bibliographystyle{bibliography_style/gost-numeric.bbx}
+\usepackage[
+    natbib = true,
+    style = alphabetic,
+    sorting = none,
+    backend = biber,
+    language = autobib,
+    autolang = other
+]{biblatex}
+\addbibresource{references.bib}
+
+%%% Исправление символа номера при использовании gost-numeric.bbx
+\usepackage{textcomp}
+\DefineBibliographyStrings{russian}{number={\textnumero}}
+
+%%% Гиперссылки
+\usepackage[pdftex,unicode]{hyperref}
+
+%%% Перенос знаков в формулах (по Львовскому)
+\newcommand*{\hm}[1]{#1\nobreak\discretionary{}{\hbox{$\mathsurround=0pt #1$}}{}}
+
+
+%%% Свои команды
+
+\newcommand{\forcehyphenation}{-\linebreak}
+
+\newcommand{\absent}[1]{[...#1...]}
+
+
+%%% Свои операторы
+\DeclareMathOperator*{\argmin}{{argmin}}
+\DeclareMathOperator*{\argmax}{{argmax}}
+
+
+%%% Заглавие
+\title{Классификация русских классических стихов \\ по эпохам}
+\author{Пономарев Андрей Сергеевич}
+\date{2024--2025 учебный год, \\ весенний семестр}
+
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+    \absent{Краткое описание проекта} Репозиторий проекта находится по ссылке \\
+    \url{https://github.com/ponomarevandr/russian_poems_classification}.
+\end{abstract}
+
+
+
+\section{Введение}
+
+Обработка естественного языка (natural language processing)~-- область информатики, в настоящее время переживающая бурное развитие. Ее методы находят широкое применение в самых разных прикладных задачах. Из-за подобной широты многие задачи все еще далеки от исчерпывающего анализа, существующие решения можно свободно дорабатывать и развивать.
+
+Одним из разделов обработки естественного языка, которые поныне не находятся в центре внимания, является анализ стихотворных текстов. Об этом свидетельствует как относительно малое число публикаций по теме, так и слова их авторов напрямую (например, \cite{barbado2021}).
+
+В настоящем проекте предлагается решение задачи классификации русских классических стихотворений по эпохе, или, иначе, течению, направлению. Автор не нашел в Интернете статей, освещавших бы в точности этот вопрос, и в этом смысле работа нова.
+
+Будут рассмотрены два подхода к решению задачи: с помощью нейронной сети LSTM (в качестве базового) и с помощью предобученной модели RuBERT-tiny.
+
+Лучший результат показала модель RuBERT-tiny~-- точность около $70 \%$. Она в дальнейшем может применяться на практике, например, для категоризации стихотворений в Интернете, как классических, так и современных.
+
+
+\subsection{Команда}
+
+Проект подготовил \textbf{Пономарев А. С.}
+
+
+\section{Смежные работы}
+
+Перечислим несколько статей, близких проекту по тематике.
+
+Работа \cite{noraini2012} посвящена классификации малайской поэзии по нескольким темам. Статья написана давно и использует ныне устаревший подход~-- метод опорных векторов (SVM) поверх TF-IDF,~-- но подходит для знакомства с задачей.
+
+Интересна и обширна статья \cite{ruma2022}. Авторы рассматривают задачу классификации стихотворений Хафиза Ширази (на персидском языке) по периодам в жизни автора, что совсем близко к теме настоящего проекта. Основная используемая модель~-- LSTM-нейросеть, но помимо нее авторы пробуют логистическую регрессию, SVM, random forest, Bi-LSTM, GRU; в качестве эмбеддингов~-- CBOW, SkipGram, а также их конкатенацию. Авторы утверждают, что добились внушительной точности в $85 \%$.
+
+Отметим также близкую по тематике работу \cite{orabi2020}, посвященную классификации арабской поэзии по эпохе написания. Авторы используют CNN-нейросеть с эмбеддингами FastText, относительно большой датасет (десятки тысяч стихотворений) и получают точность порядка $80 \%$.
+
+В работе \cite{barbado2021} исследуется применение моделей-трансформеров для разбиения испанских сонетов по категориям выражаемых чувств. Для различных классов авторы добиваются F1-метрики от $0.6$ до $0.8$.
+
+В отдельную ветвь можно выделить исследования, приспосабливающие для анализа стихотворных текстов предобученные BERT-подобные модели. В работе \cite{shahriar2023} дообучена модель AraBERT для классификации арабской поэзии по выражаемым эмоциям (точность $76.5 \%$). Статья \cite{rosa2023} описывает масштабный труд по обучению модели ALBERTI~-- мультиязыкового кодировщика для анализа стихотворений~-- на огромном массиве данных в миллионы произведений. Авторы утверждают, что на момент создания как сама модель, так и показанные результаты не имели аналогов. В работе также затронута интересная тема анализа средствами машинного обучения метрики стиха (то есть рисунка слогов и ударений).
+
+
+\section{Model Description}
+Here you need to write a detailed description of your approach. It is important to mention that this description should give more details than the descriptions from section \ref{sec:related}\footnote{This is an example of internal references and footnotes at the same time.}. 
+
+You will likely be providing a figure to better present your approach. A sample circle is presented on Fig.~\ref{fig:circle}.
+
+The other possible contents of this section are formulae. They could be on a new line:
+$$S=\pi r^2,$$
+or they could be inline, e.g. if you want to describe the used variables, like $S$ is an area of a circle, while $r$ is its radius. 
+
+\begin{figure}[!tbh]
+    \centering
+    \includegraphics[width=0.3\linewidth]{circle.png}
+    \caption{A sample circle.}
+    \label{fig:circle}
+\end{figure}
+
+\section{Dataset}
+In this section, you need to describe the dataset(s) you are working with. 
+An example dataset we will use is WikiText-2. Please mention a paper where it was presented, e.g. WikiText-2 was presented in~. Please provide guidance on how to obtain the dataset\footnote{The one way to do it is to include a link to the website, where it could be downloaded from. Like~\href{https://blog.einstein.ai/the-wikitext-long-term-dependency-language-modeling-dataset/}{this}.}. It is important to mention that the dataset you use must be available for the research purposes. So please make sure about that.
+
+Your description will likely be including a table. On the Tab.~\ref{tab:statistics} you can see the statistics for the mentioned dataset. It is important to notice that there is a split of the dataset and this split is covered by the description.
+
+\begin{table}[tbh!]
+\begin{center}
+\begin{tabular}[t]{|l|ccc|}
+\hline
+%\cline{2-4}
+ & Train & Valid & Test \\
+\hline
+Articles & 600 & 60 & 60  \\
+Tokens& 2,088,628 & 217,646 & 245,569 \\
+Vocabulary size & \multicolumn{3}{c|}{33,278} \\
+Out of Vocab rate &  \multicolumn{3}{c|}{2.6\%}  \\
+\hline
+\end{tabular}
+\caption{Statistics of the WikiText-2. The out of vocabulary (OoV) rate notes what percentage of tokens have been replaced by an $\langle unk \rangle$ token. The token count includes newlines which add to the structure of the dataset.}
+\label{tab:statistics}
+\end{center}
+\end{table}
+
+If you were collecting the dataset on your own please describe the collection procedure, like criteria were used to filter the documents, the pre-processing steps, etc. It is preferable that you release your dataset for the public, but you are not obliged to do this. Please make sure that you have legal rights to collect and distribute the data you were working with. We recommend you to look at C4Corpus and how it is licensed to make your corpora. C4Corpus is described in~\cite{habernal2016c4corpus}.
+
+\section{Experiments}
+This section should include several subsections.
+\subsection{Metrics}
+First of all, you should describe the metric(s) you were using to evaluate your approach. Most likely a metric description will include a formula.
+
+\subsection{Experiment Setup}
+Secondly, you need to describe the design of your experiment, e.g. how many runs there were, how the data split was done. The important details of your model, like hyper-parameters used in the experiments, and so on.
+
+\subsection{Baselines}
+Another important feature is that you could provide here the description of some simple approaches for your problem, like logistic regression over TF-IDF embedding for text classification. The baselines are needed is there is no previous art on the problem you are presenting.
+
+\section{Results}
+In this section, you need to list and describe the achieved results. It is crucial to have the results of the experiments for the other approaches. This is needed to be able to compare your results with some competitors. Most preferably, you should provide some references with results on the same problem.
+
+Almost inevitably the results are presented as a table, but it is also possible to have a graph, i.e. a figure.
+
+You need also to provide an interpretation of the presented results, to describe some features. E.g. your approach shows higher results on the short texts or by one metric instead of another.
+
+Also in this section, you could provide some results for your model inference. The samples could be found in Tab.~\ref{tab:output}.
+
+\begin{table}[!tbh]
+    \centering
+    \begin{tabular}{|c|}
+\hline
+Это пример вывода вашей модели на русском.\\
+This is a sample output of your model in English.
+\\
+\hline
+    \end{tabular}
+    \caption{Output samples.}
+    \label{tab:output}
+\end{table}
+
+\section{Conclusion}
+In this section, you need to describe all the work in short: what you have done and what has been achieved. E.g. you have collected a dataset, made a markup for it and developed a model showing the best results compared to other models. 
+
+
+\begin{otherlanguage}{english}
+\printbibliography[
+    heading=bibintoc
+]
+\end{otherlanguage}
+
+\end{document}
