@@ -34,6 +34,7 @@
 
 %%% Таблицы
 \usepackage{array}
+\usepackage{makecell}
 
 %%% Рисунки
 \usepackage{graphicx}
@@ -43,7 +44,6 @@
 \usepackage[labelsep=period]{caption}
 
 %%% Список литературы
-\bibliographystyle{bibliography_style/gost-numeric.bbx}
 \usepackage[
     natbib = true,
     style = alphabetic,
@@ -126,47 +126,101 @@
 В отдельную ветвь можно выделить исследования, приспосабливающие для анализа стихотворных текстов предобученные BERT-подобные модели. В работе \cite{shahriar2023} дообучена модель AraBERT для классификации арабской поэзии по выражаемым эмоциям (точность $76.5 \%$). Статья \cite{rosa2023} описывает масштабный труд по обучению модели ALBERTI~-- мультиязыкового кодировщика для анализа стихотворений~-- на огромном массиве данных в миллионы произведений. Авторы утверждают, что на момент создания как сама модель, так и показанные результаты не имели аналогов. В работе также затронута интересная тема анализа средствами машинного обучения метрики стиха (то есть рисунка слогов и ударений).
 
 
-\section{Model Description}
-Here you need to write a detailed description of your approach. It is important to mention that this description should give more details than the descriptions from section \ref{sec:related}\footnote{This is an example of internal references and footnotes at the same time.}. 
+\section{Данные}
 
-You will likely be providing a figure to better present your approach. A sample circle is presented on Fig.~\ref{fig:circle}.
+Для работы с моделями был создан и размечен датасет русских классических стихов. За основу взяты два ранее существовавших датасета стихов, размещенные в открытом доступе: \cite{russian_poetry_corpus} и \cite{russian_poems_19000}.
 
-The other possible contents of this section are formulae. They could be on a new line:
-$$S=\pi r^2,$$
-or they could be inline, e.g. if you want to describe the used variables, like $S$ is an area of a circle, while $r$ is its radius. 
+После объединения исходных датасетов данные были приведены к единому формату и очищены (см. Юпитер-тетрадку \textit{dataset\_preparation.ipynb}). Итоговая структура датасета показана в таблице \ref{tab:dataset}.
+
+Поле \textit{author} всюду приведено к одной лишь фамилии автора; в случае совпадений используются приписки через дефис, например: \textit{Багрицкий-отец}, \textit{Иванов-В}. Исключены иноязычные авторы, представленные в переводах.
+
+Заглавие в поле \textit{title} приведено к нижнему регистру и очищено ото всех небуквенных символов, кроме цифр и пробелов.
+
+\begin{table}[t]
+\centering
+\begin{tabular}[t]{|m{1.4cm}|m{2.8cm}|m{4.2cm}|m{2.9cm}|m{1.3cm}|m{1.4cm}|}
+    \hline
+    & \textbf{author} & \textbf{epoch} & \textbf{title} & \textbf{part} & \textbf{text} \\
+    \hline
+    \hline
+    Содер\-жание & \makecell[l]{Фамилия \\ автора} \par & \makecell[l]{Эпоха (течение, \\ направление)} \par & Заглавие & Номер фрагмента & Текст фрагмента \\
+    \hline
+    Формат & Русские буквы: заглавная, далее строчные; дефис & \makecell[l]{Одно из: \\ классицизм, \\ золотой век, \\ критический реализм, \\ серебряный век, \\ футуризм, \\ соцреализм, \\ шестидесятники} \par & Строчные русские и~английские буквы, цифры, пробел & Индекс с нуля & $8$--$40$ строк, без пустых строк \\
+    \hline
+\end{tabular}
+\caption{Структура датасета.}
+\label{tab:dataset}
+\end{table}
+
+В текстах стихотворений по возможности исправлены ошибочные символы, удалены теги, сноски, номера строф, символьные артефакты. Убраны пустые строки. Исключены записи, состоящие преимущественно не из русских букв или имеющие среднюю длину строки более $60$ символов.
+
+Из датасета удалены дубликаты. Их поиск велся как по заглавию, так и по расстоянию Левенштейна между текстами.
+
+При работе с моделью было решено использовать стихотворные тексты длиной от $8$ до $40$ строк включительно. Для этого все более длинные произведения были <<нарезаны>> на фрагменты допустимой случайной длины. Эмпирически установлено, что распределение длин коротких стихотворений в строках близко к гамма-распределению, $\xi \sim \text{Gamma}[\alpha, \beta]$, с матожиданием $\text{E} \xi \approx 18.23$ и дисперсией $\text{D} \xi \approx 81.66$. Напомним, что его плотность определяется формулой
+\[
+    p_{\alpha, \beta}(x) = \cfrac{\beta^\alpha x^{\alpha - 1} e^{-\beta x}}{\Gamma(\alpha)},
+\]
+а также верно $\text{E} \xi = \alpha / \beta$ и $\text{D} \xi = \alpha / \beta^2$. Случайные длины при разбиении стихотворений на фрагменты получались округлением элементов выборки из описанного распределения.
+
+Поле \textit{epoch} является целевым признаком. Будем называть его эпохой стихотворения (синонимы~-- течение, направление). Выделим семь основных эпох: см. таблицу \ref{tab:epoches}. Каждая эпоха имеет своеобразные черты и примерную датировку, представление о которых дают многочисленные открытые источники. Однако автору неизвестно единого исследования, которое давало бы исчерпывающее и достаточно строгое разбиение русской поэзии по эпохам, поэтому он в немалой степени руководствовался личной интуицией и чувством прекрасного.
+
+\begin{table}[t]
+\centering
+\begin{tabular}[t]{|m{3.4cm}|m{3.6cm}|m{8cm}|}
+    \hline
+    Эпоха & \makecell[l]{Примерная \\ датировка} & Комментарий \\
+    \hline
+    \hline
+    Классицизм & XVIII век & \\
+    \hline
+    \makecell[l]{Золотой век \\ русской поэзии} & Первая половина XIX века & \\
+    \hline
+    \makecell[l]{Критический \\ реализм} & Вторая половина XIX века & Близко к понятию <<натуральной школы>> \\
+    \hline
+    \makecell[l]{Серебряный век \\ русской поэзии} & Начало XX века & Близко к понятию символизма \\
+    \hline
+    Футуризм & Начало XX века & Может рассматриваться как часть Серебряного века, но резко выделяется и достаточно объемен \\
+    \hline
+    Социалистический реализм & Середина XX века & \\
+    \hline
+    \makecell[l]{Поэзия \\ шестидесятников} & Вторая половина XX века & \\
+    \hline
+\end{tabular}
+\caption{Эпохи, выделяемые в русской поэзии}
+\label{tab:epoches}
+\end{table}
+
+Для простоты будем считать, что эпоха стихотворения определяется эпохой его автора; $189$ авторам, представленным в датасете, были присвоены метки в соответствии со сказанным выше, а затем перенесены на соответствующие фрагменты произведений. Списки авторов по эпохам см. в Юпитер-тетрадке \textit{dataset\_labeling.ipynb}.
+
+Получившееся разбиение на классы относительно сбалансированно: самый большой~-- Серебряный век~-- содержит $16204$ стихотворных фрагмента; самый малый~-- шестидесятники~-- $3238$, что примерно в $5$ раз меньше.
+
+Для работы с моделями датасет разбивался на три части: тренировочную (train), валидационную (eval) и тестовую (test)~-- в соотношении $70:15:15$.
+
+
+\section{Модели}
+
+\subsection{LSTM}
+
+Первая использованная модель, и она же взятая в качестве базового решения (base\-line),~-- это нейронная сеть типа Long short-term memory (LSTM) (см. Юпитер-тетрадку \textit{training\_lstm.ipynb}). Для работы выбрана известная реализация из библиотеки Pytorch~-- класс \textit{nn.LSTM}. Поверх стандартной LSTM-нейросети добавлен полносвязный линейный слой (\textit{nn.Linear}) с функцией активации LogSoftmax для получения логарифмированных вероятностей классов.
+
+Для кодирования текста используются готовые русскоязычные эмбеддинги \textit{word2vec-ruscorpora-300} из библиотеки Gensim. Для их работы требуется лемматизация и определение части речи; то и другое производится средствами библиотеки Pymorphy3 пословно.
+
+Нейросеть \textit{nn.LSTM} имеет размерность входа $300$, размерность внутреннего состояния $400$ и единственный скрытый слой.
+
+Для обучения использовался оптимизатор \textit{optim.Adam} с параметром $lr = 1.5 \cdot 10^{-4}$ (learning rate).
+
+\subsection{RuBERT-tiny}
+
+Вторая использованная модель -- это BERT-подобный кодировщик RuBERT-tiny2 (см. Юпитер-тетрадку \textit{training\_rubert.ipynb}), опубликованный в Интернете \cite{rubert_model}. Модель была выбрана, во-первых, потому, что специально предназначена для русскоязычных текстов, во-вторых, из-за своего сравнительно малого (как и обещеат название) размера в $29.4$ миллиона параметров.
+
+Работа с моделью происходит через библиотеки Datasets, Evaluate и Transformers компании Hugging Face. Автор значительно опирался на код из Юпитер-тетрадки \cite{rubert_notebook}. Хотя исходно модель RuBERT-tiny2 -- это кодировщик, а не классификатор, средства библиотек позволяют загрузить ее в класс \textit{AutoModelForSequenceClassification}, автоматически добавляя необходимые элементы. Для обучения использовался оптимизатор \textit{optim.Adam} из библиотеки Pytorch, с параметром $lr = 10^{-5}$. Модель поддерживает работу на GPU (Cuda), что значительно ускорило обучение -- средствами Google Colab оно было завершено приблизительно за 25 минут.
 
 \begin{figure}[!tbh]
     \centering
-    \includegraphics[width=0.3\linewidth]{circle.png}
-    \caption{A sample circle.}
-    \label{fig:circle}
+    \includegraphics[width=0.7\linewidth]{figures/rubert_confusion_matrix.png}
+    \caption{Матрица конфуза модели RuBERT}
+    \label{fig:rubert_confusion}
 \end{figure}
-
-\section{Dataset}
-In this section, you need to describe the dataset(s) you are working with. 
-An example dataset we will use is WikiText-2. Please mention a paper where it was presented, e.g. WikiText-2 was presented in~. Please provide guidance on how to obtain the dataset\footnote{The one way to do it is to include a link to the website, where it could be downloaded from. Like~\href{https://blog.einstein.ai/the-wikitext-long-term-dependency-language-modeling-dataset/}{this}.}. It is important to mention that the dataset you use must be available for the research purposes. So please make sure about that.
-
-Your description will likely be including a table. On the Tab.~\ref{tab:statistics} you can see the statistics for the mentioned dataset. It is important to notice that there is a split of the dataset and this split is covered by the description.
-
-\begin{table}[tbh!]
-\begin{center}
-\begin{tabular}[t]{|l|ccc|}
-\hline
-%\cline{2-4}
- & Train & Valid & Test \\
-\hline
-Articles & 600 & 60 & 60  \\
-Tokens& 2,088,628 & 217,646 & 245,569 \\
-Vocabulary size & \multicolumn{3}{c|}{33,278} \\
-Out of Vocab rate &  \multicolumn{3}{c|}{2.6\%}  \\
-\hline
-\end{tabular}
-\caption{Statistics of the WikiText-2. The out of vocabulary (OoV) rate notes what percentage of tokens have been replaced by an $\langle unk \rangle$ token. The token count includes newlines which add to the structure of the dataset.}
-\label{tab:statistics}
-\end{center}
-\end{table}
-
-If you were collecting the dataset on your own please describe the collection procedure, like criteria were used to filter the documents, the pre-processing steps, etc. It is preferable that you release your dataset for the public, but you are not obliged to do this. Please make sure that you have legal rights to collect and distribute the data you were working with. We recommend you to look at C4Corpus and how it is licensed to make your corpora. C4Corpus is described in~\cite{habernal2016c4corpus}.
 
 \section{Experiments}
 This section should include several subsections.
